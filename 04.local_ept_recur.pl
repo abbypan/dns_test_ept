@@ -12,26 +12,33 @@ use String::Random qw/random_string/;
 use Digest::MD5 qw(md5_hex);
 use Socket qw/inet_ntoa inet_aton/;
 
+#our $EPT_CODE = 12;
 our $EPT_CODE = 0xFD66;
-our $EPT_DOM  = 'eptfortest.com';
+our $EPT_DOM  = 'myept.com';
 
 our $EPT_KEY_PUB = Crypt::PK::RSA->new( 'key/ept.key.pub.pem' );
 
 our $RELAY_RESOLVER = new Net::DNS::Resolver(
-  nameservers => ['127.0.0.1'],
+nameservers => ['114.114.114.114'], #114
+#nameservers => ['223.5.5.5'], #alidns
+#nameservers => ['8.8.8.8'], #Google 
+#nameservers => ['1.1.1.1'], #Cloudflare 
+#nameservers => ['9.9.9.9'], #Quad9 
+#nameservers => ['64.6.64.6'], #Verisign
+#nameservers => ['208.67.222.222'], #OpenDNS
+    
   recurse     => 1,
-
-  #debug       => 1
+  debug       => 1
 );
-$RELAY_RESOLVER->port( 53000 );
+$RELAY_RESOLVER->port( 53 );
 
 my $local_ept_recur = new Net::DNS::Nameserver(
   LocalAddr    => ['127.0.0.1'],
   LocalPort    => 52000,
   ReplyHandler => \&reply_handler,
 
-  #debug => 1,
-  #Verbose      => 1
+  debug => 1,
+  Verbose      => 1
 ) || die "couldn't create nameserver object\n";
 
 $local_ept_recur->main_loop;

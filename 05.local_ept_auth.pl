@@ -12,24 +12,25 @@ use Net::DNS::Resolver;
 use Net::DNS;
 use Socket qw/inet_ntoa inet_aton/;
 
+#our $EPT_CODE     = 12;
 our $EPT_CODE     = 0xFD66;
-our $EPT_DOM      = 'eptfortest.com';
+our $EPT_DOM      = 'myept.com';
 our $EPT_KEY_PRIV = Crypt::PK::RSA->new( 'key/ept.key.priv.pem' );
 
 our $EPT_OWN_RESOLVER = new Net::DNS::Resolver(
-  nameservers => ['127.0.0.1'],
+  nameservers => ['8.8.8.8'],
   recurse     => 1,
 
-  #debug       => 1
+  debug       => 1
 );
 
 my $ept_auth = new Net::DNS::Nameserver(
-  LocalAddr    => ['127.0.0.1'],
-  LocalPort    => 54000,
+  LocalAddr    => ['0.0.0.0'],
+  LocalPort    => 53,
   ReplyHandler => \&reply_handler,
 
-  #debug => 1,
-  #Verbose      => 1
+  debug => 1,
+  Verbose      => 1
 ) || die "couldn't create nameserver object\n";
 
 $ept_auth->main_loop;
@@ -38,7 +39,7 @@ sub reply_handler {
   my ( $qname, $qclass, $qtype, $peerhost, $query, $conn ) = @_;
   my ( $rcode, @ans, @auth, @add );
 
-  #$query->print;
+  $query->print;
   print "----remote_ept_auth----\n";
   print "recv from relay_resolver: $qname\n";
 
@@ -84,7 +85,11 @@ sub read_ept_val {
   return unless ( $opt );
 
   my $ept_val = $opt->{option}{$EPT_CODE};
+  print "read ept val : $ept_val\n";
+  print Dumper($opt);
   return unless ( $ept_val );
+
+  print "read ept:$ept_val\n";
 
   #my $ct    = MIME::Base32::decode( $ept_val );
   my $plain = $EPT_KEY_PRIV->decrypt( $ept_val );
